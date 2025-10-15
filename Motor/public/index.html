@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Buscador de claves de transmisión</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 760px; margin: 24px auto; }
+    label { display:block; margin-top:12px; }
+    select, input { width: 100%; padding:8px; margin-top:4px; }
+    button { margin-top:16px; padding:10px 16px; }
+    .resultado { margin-top:18px; padding:12px; border:1px solid #ddd; background:#f9f9f9; }
+  </style>
+</head>
+<body>
+  <h2>Buscador de claves de transmisiones</h2>
+
+  <label>Agencia
+    <select id="agencia">
+      <option value="">-- cualquiera --</option>
+      <option>Chevrolet</option>
+      <option>Ford</option>
+      <option>Dodge</option>
+    </select>
+  </label>
+
+  <label>Nombre (modelo)
+    <select id="nombre">
+      <option value="">-- cualquiera --</option>
+      <option>Silverado</option>
+      <option>F-150</option>
+    </select>
+  </label>
+
+  <label>Cambios
+    <select id="cambios">
+      <option value="">-- cualquiera --</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="8">8</option>
+    </select>
+  </label>
+
+  <label>Año
+    <input id="año" type="number" min="1900" max="2100" placeholder="Ej. 2004" />
+  </label>
+
+  <label>Cantidad de cilindros
+    <select id="cilindros">
+      <option value="">-- cualquiera --</option>
+      <option value="4">4</option>
+      <option value="6">6</option>
+      <option value="8">8</option>
+    </select>
+  </label>
+
+  <label>Motor (litros)
+    <select id="motor">
+      <option value="">-- cualquiera --</option>
+      <option value="4.30">4.3</option>
+      <option value="4.80">4.8</option>
+      <option value="5.30">5.3</option>
+    </select>
+  </label>
+
+  <button id="buscar">Buscar clave</button>
+
+  <div id="resultados"></div>
+
+  <script>
+    document.getElementById('buscar').addEventListener('click', async () => {
+      const body = {
+        agencia: document.getElementById('agencia').value || null,
+        nombre: document.getElementById('nombre').value || null,
+        cambios: document.getElementById('cambios').value ? parseInt(document.getElementById('cambios').value) : null,
+        año: document.getElementById('año').value ? parseInt(document.getElementById('año').value) : null,
+        cilindros: document.getElementById('cilindros').value ? parseInt(document.getElementById('cilindros').value) : null,
+        motor: document.getElementById('motor').value ? parseFloat(document.getElementById('motor').value) : null
+      };
+
+      const resDiv = document.getElementById('resultados');
+      resDiv.innerHTML = 'Buscando...';
+
+      try {
+        const resp = await fetch('/buscar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+          if (data.resultados.length === 0) {
+            resDiv.innerHTML = '<div class="resultado"><strong>No se encontraron coincidencias</strong></div>';
+          } else {
+            const rows = data.resultados.map(r =>
+              `<div class="resultado"><strong>Clave:</strong> ${r.clave} <br>
+               <strong>Agencia:</strong> ${r.agencia} ; <strong>Modelo:</strong> ${r.nombre} ; 
+               <strong>Cambios:</strong> ${r.cambios} ; <strong>Años:</strong> ${r.años_min}-${r.años_max} ; 
+               <strong>Cilindros:</strong> ${r.cilindros} ; <strong>Motor:</strong> ${r.motor}</div>`
+            ).join('');
+            resDiv.innerHTML = rows;
+          }
+        } else {
+          resDiv.innerHTML = '<div class="resultado"><strong>Error al buscar</strong></div>';
+        }
+      } catch (err) {
+        resDiv.innerHTML = '<div class="resultado"><strong>Error de conexión</strong></div>';
+        console.error(err);
+      }
+    });
+  </script>
+  <script src="motorL.js"></script>
+
+</body>
+</html>
