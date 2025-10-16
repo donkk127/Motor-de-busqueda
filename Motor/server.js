@@ -7,8 +7,8 @@ app.use(express.json());
 app.use(express.static('public')); // sirve index.html
 
 const config = {
-  server: 'localhost\\SQLEXPRESS',
-  database: 'c',
+  server: 'localhost\SQLEXPRESS',
+  database: 'MOTORDB',
   options: {
     encrypt: false,
     trustServerCertificate: true
