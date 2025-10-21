@@ -1,28 +1,28 @@
 const express = require('express');
 const sql = require('mssql/msnodesqlv8');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 🔧 CONFIGURACIÓN CORRECTA
+
+// Servir los archivos estáticos desde la carpeta "public"
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Configuración de la conexión SQL
 const config = {
+  server: 'DESKTOP-NAV45OG\\SQLEXPRESS',
   database: 'MOTORDB',
-  server: 'DESKTOP-NAV45OG\\SQLEXPRESS',  // 👈 una sola barra aquí, no cuatro
-  driver: 'msnodesqlv8',
   options: {
     trustedConnection: true,
-    trustServerCertificate: true
-  }
+    trustServerCertificate: true,
+  },
+  driver: 'msnodesqlv8'
 };
 
-// ✅ PRUEBA DE CONEXIÓN INICIAL
-sql.connect(config)
-  .then(() => console.log('Conectado a MOTORDB correctamente'))
-  .catch(err => console.error('Error de conexión:', err));
-
-// 🔍 Ruta para buscar
+// Ruta para búsqueda
 app.post('/buscar', async (req, res) => {
   const { agencia, nombre, cambios, año, cilindros, motor } = req.body;
 
@@ -66,5 +66,16 @@ app.post('/buscar', async (req, res) => {
   }
 });
 
+// Ruta raíz: devuelve tu index.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Iniciar servidor
 const PORT = 3000;
-app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
+
+console.log('Ruta absoluta a /public:', path.join(__dirname, 'public'));
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+});
