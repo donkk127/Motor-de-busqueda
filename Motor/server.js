@@ -5,7 +5,7 @@ const app = express();
 const PORT = 3000;
 
 
-// Middleware
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -28,14 +28,20 @@ app.get('/opciones', async (req, res) => {
     await sql.connect(config);
     console.log('Conectado correctamente a la base de datos');
 
-    const agencias = await sql.query`SELECT DISTINCT agencia FROM Transmisiones ORDER BY agencia`;
-    const nombres = await sql.query`SELECT DISTINCT nombre FROM Transmisiones ORDER BY nombre`;
+    const resultado = await sql.query`
+      SELECT DISTINCT agencia, nombre, cambios, cilindros, motor
+      FROM Transmisiones
+    `;
 
-    console.log('Agencias y nombres obtenidos:', agencias.recordset, nombres.recordset);
+    const registros = resultado.recordset;
 
     res.json({
-      agencias: agencias.recordset.map(r => r.agencia),
-      nombres: nombres.recordset.map(r => r.nombre)
+      todos: registros, //registros para filtrar en el frontend
+      agencias: [...new Set(registros.map(r => r.agencia))].sort(),
+      nombres: [...new Set(registros.map(r => r.nombre))].sort(),
+      cambios: [...new Set(registros.map(r => r.cambios))].sort(),
+      cilindros: [...new Set(registros.map(r => r.cilindros))].sort(),
+      motores: [...new Set(registros.map(r => r.motor))].sort()
     });
 
   } catch (error) {
@@ -43,6 +49,8 @@ app.get('/opciones', async (req, res) => {
     res.status(500).json({ error: 'Error al obtener opciones desde la base de datos' });
   }
 });
+
+
 
 
 app.get('/', (req, res) => {
