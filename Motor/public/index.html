@@ -1,59 +1,145 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <title>Buscador de claves de transmisión</title>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 760px; margin: 24px auto; }
-    label { display:block; margin-top:12px; }
-    select, input { width: 100%; padding:8px; margin-top:4px; }
-    button { margin-top:16px; padding:10px 16px; }
-    .resultado { margin-top:18px; padding:12px; border:1px solid #ddd; background:#f9f9f9; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscador de Transmisiones</title>
+ <style>
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #38bdf8;
+    }
+
+    .buscador {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    select, input, button {
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      min-width: 180px;
+    }
+
+    select:disabled, input:disabled {
+      background-color: #334155;
+      color: #94a3b8;
+    }
+
+    button {
+      background: #38bdf8;
+      color: #0f172a;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #0ea5e9;
+    }
+
+    #resultados {
+      margin-top: 30px;
+      text-align: left;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .resultado {
+      background: #1e293b;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+    }
+
+    .feedback {
+      background: #0f172a;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 25px;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
+    }
+
+    .feedback h3 {
+      margin-bottom: 10px;
+      color: #fbbf24;
+    }
+
+    .feedback button {
+      background: #1d4ed8;
+      color: white;
+      margin: 5px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .feedback button:hover {
+      background: #2563eb;
+    }
+
+    select {
+      background-color: #1e293b;
+      color: #e2e8f0;
+    }
+
+    input[type="number"] {
+      background-color: #1e293b;
+      color: #e2e8f0;
+    }
   </style>
 </head>
 <body>
-  <h2>Buscador de claves de transmisiones</h2>
+
+  <h1>Buscador de Transmisiones</h1>
 
   <label>Agencia
-    <select id="agencia">
-      <option value="">-- cualquiera --</option>
-    </select>
+    <select id="agencia"><option value="">--Seleccione--</option></select>
   </label>
 
   <label>Nombre (modelo)
-    <select id="nombre">
-      <option value="">-- cualquiera --</option>
-    </select>
+    <select id="nombre" disabled><option value="">--Seleccione--</option></select>
   </label>
 
   <label>Cambios
-    <select id="cambios">
-      <option value="">-- cualquiera --</option>
-    </select>
+    <select id="cambios" disabled><option value="">--Seleccione--</option></select>
   </label>
 
-  <label>Año
-    <input id="año" type="number" min="1900" max="2100" placeholder="Ej. 2004" />
-  </label>
-
-  <label>Cantidad de cilindros
-    <select id="cilindros">
-      <option value="">-- cualquiera --</option>
-    </select>
+  <label>Cilindros
+    <select id="cilindros" disabled><option value="">--Seleccione--</option></select>
   </label>
 
   <label>Motor (litros)
-    <select id="motor">
-      <option value="">-- cualquiera --</option>
-    </select>
+    <select id="motor" disabled><option value="">--Seleccione--</option></select>
+  </label>
+
+  <label>Año
+    <input type="number" id="año" min="1900" max="2100" placeholder="Ej. 2004">
   </label>
 
   <button id="buscar">Buscar clave</button>
 
   <div id="resultados"></div>
+  <div id="feedback" class="feedback-btns"></div>
 
   <script src="motorL.js"></script>
- 
-
 </body>
 </html>
