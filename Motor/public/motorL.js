@@ -1,179 +1,178 @@
-console.log('motorL.js cargado correctamente');
+console.log("motorL.js cargado correctamente");
 
-// Elementos del DOM
-const agenciaSel = document.getElementById('agencia');
-const nombreSel = document.getElementById('nombre');
-const cambiosSel = document.getElementById('cambios');
-const cilindrosSel = document.getElementById('cilindros');
-const motorSel = document.getElementById('motor');
-const resDiv = document.getElementById('resultados');
-const feedbackDiv = document.getElementById('feedback');
+// 🔹 Función genérica para llenar selects
+async function llenarSelect(url, selectId, placeholder = "-- seleccionar --") {
+  const sel = document.getElementById(selectId);
+  sel.innerHTML = `<option value="">${placeholder}</option>`;
+  sel.disabled = true; // Lo desactivamos momentáneamente mientras carga
 
-// Inicialización: solo la agencia habilitada al inicio
-nombreSel.disabled = true;
-cambiosSel.disabled = true;
-cilindrosSel.disabled = true;
-motorSel.disabled = true;
-
-// Función genérica para llenar un select con fetch desde el servidor
-async function llenarSelect(endpoint, selectEl, filtros = {}) {
   try {
-    const query = new URLSearchParams(filtros).toString();
-    const resp = await fetch(endpoint + (query ? `?${query}` : ''));
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error("Error HTTP: " + resp.status);
     const data = await resp.json();
 
-    selectEl.innerHTML = '<option value="">-- cualquiera --</option>';
-    // Cada select recibe su array correspondiente según id
-    const arr = data[selectEl.id]; 
-    if (arr) arr.forEach(valor => {
-      const opt = document.createElement('option');
-      opt.value = valor;
-      opt.textContent = valor;
-      selectEl.appendChild(opt);
+    data.forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      sel.appendChild(opt);
     });
+
+    // ✅ Si hay datos, habilitamos el select
+    if (data.length > 0) {
+      sel.disabled = false;
+    }
+
   } catch (err) {
-    console.error(`Error llenando select ${selectEl.id}:`, err);
+    console.error(`Error llenando select ${selectId}:`, err);
   }
 }
 
-// Llenar agencias al cargar la página
-window.addEventListener('DOMContentLoaded', () => {
-  llenarSelect('/opciones', agenciaSel);
+
+// 🔹 Cargar agencias al inicio
+window.addEventListener("DOMContentLoaded", async () => {
+  await llenarSelect("/opciones/agencias", "agencia", "-- elige agencia --");
 });
 
-// Cascada de selects
-agenciaSel.addEventListener('change', () => {
-  nombreSel.disabled = !agenciaSel.value;
-  if (!agenciaSel.value) {
-    nombreSel.innerHTML = '<option value="">-- cualquiera --</option>';
-    cambiosSel.innerHTML = '<option value="">-- cualquiera --</option>';
-    cilindrosSel.innerHTML = '<option value="">-- cualquiera --</option>';
-    motorSel.innerHTML = '<option value="">-- cualquiera --</option>';
-    cambiosSel.disabled = true;
-    cilindrosSel.disabled = true;
-    motorSel.disabled = true;
-    return;
-  }
-  llenarSelect('/opciones', nombreSel, { agencia: agenciaSel.value });
+// 🔹 Cascada de selects
+document.getElementById("agencia").addEventListener("change", async e => {
+  const agencia = e.target.value;
+  resetSelects(["nombre", "cambios", "cilindros", "motor"]);
+  if (agencia) await llenarSelect(`/opciones/nombres?agencia=${agencia}`, "nombre", "-- elige modelo --");
 });
 
-nombreSel.addEventListener('change', () => {
-  cambiosSel.disabled = !nombreSel.value;
-  if (!nombreSel.value) {
-    cambiosSel.innerHTML = '<option value="">-- cualquiera --</option>';
-    cilindrosSel.innerHTML = '<option value="">-- cualquiera --</option>';
-    motorSel.innerHTML = '<option value="">-- cualquiera --</option>';
-    cilindrosSel.disabled = true;
-    motorSel.disabled = true;
-    return;
-  }
-  llenarSelect('/opciones', cambiosSel, { agencia: agenciaSel.value, nombre: nombreSel.value });
+document.getElementById("nombre").addEventListener("change", async e => {
+  const agencia = document.getElementById("agencia").value;
+  const nombre = e.target.value;
+  resetSelects(["cambios", "cilindros", "motor"]);
+  if (nombre) await llenarSelect(`/opciones/cambios?agencia=${agencia}&nombre=${nombre}`, "cambios", "-- elige cambios --");
 });
 
-cambiosSel.addEventListener('change', () => {
-  cilindrosSel.disabled = !cambiosSel.value;
-  if (!cambiosSel.value) {
-    cilindrosSel.innerHTML = '<option value="">-- cualquiera --</option>';
-    motorSel.innerHTML = '<option value="">-- cualquiera --</option>';
-    motorSel.disabled = true;
-    return;
-  }
-  llenarSelect('/opciones', cilindrosSel, {
-    agencia: agenciaSel.value,
-    nombre: nombreSel.value,
-    cambios: cambiosSel.value
+document.getElementById("cambios").addEventListener("change", async e => {
+  const agencia = document.getElementById("agencia").value;
+  const nombre = document.getElementById("nombre").value;
+  const cambios = e.target.value;
+  resetSelects(["cilindros", "motor"]);
+  if (cambios) await llenarSelect(`/opciones/cilindros?agencia=${agencia}&nombre=${nombre}&cambios=${cambios}`, "cilindros", "-- elige cilindros --");
+});
+
+document.getElementById("cilindros").addEventListener("change", async e => {
+  const agencia = document.getElementById("agencia").value;
+  const nombre = document.getElementById("nombre").value;
+  const cambios = document.getElementById("cambios").value;
+  const cilindros = e.target.value;
+  resetSelects(["motor"]);
+  if (cilindros) await llenarSelect(`/opciones/motores?agencia=${agencia}&nombre=${nombre}&cambios=${cambios}&cilindros=${cilindros}`, "motor", "-- elige motor --");
+});
+
+function resetSelects(ids) {
+  ids.forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = `<option value="">-- seleccionar --</option>`;
   });
-});
+}
 
-cilindrosSel.addEventListener('change', () => {
-  motorSel.disabled = !cilindrosSel.value;
-  if (!cilindrosSel.value) {
-    motorSel.innerHTML = '<option value="">-- cualquiera --</option>';
-    return;
-  }
-  llenarSelect('/opciones', motorSel, {
-    agencia: agenciaSel.value,
-    nombre: nombreSel.value,
-    cambios: cambiosSel.value,
-    cilindros: cilindrosSel.value
-  });
-});
-
-// Botón buscar
-document.getElementById('buscar').addEventListener('click', async () => {
+// ======================================================
+// 🔹 BÚSQUEDA DE RESULTADOS
+// ======================================================
+document.getElementById("buscar").addEventListener("click", async () => {
   const body = {
-    agencia: agenciaSel.value || null,
-    nombre: nombreSel.value || null,
-    cambios: cambiosSel.value ? parseInt(cambiosSel.value) : null,
-    año: document.getElementById('año').value ? parseInt(document.getElementById('año').value) : null,
-    cilindros: cilindrosSel.value ? parseInt(cilindrosSel.value) : null,
-    motor: motorSel.value ? parseFloat(motorSel.value) : null
+    agencia: document.getElementById("agencia").value || null,
+    nombre: document.getElementById("nombre").value || null,
+    cambios: document.getElementById("cambios").value || null,
+    cilindros: document.getElementById("cilindros").value || null,
+    motor: document.getElementById("motor").value || null,
+    año: document.getElementById("año").value || null,
   };
 
-  resDiv.innerHTML = 'Buscando...';
-  feedbackDiv.innerHTML = ''; // Limpiar feedback previo
+  const resDiv = document.getElementById("resultados");
+  resDiv.innerHTML = "Buscando...";
 
   try {
-    const resp = await fetch('/buscar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+    const resp = await fetch("/buscar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
+
     const data = await resp.json();
 
-    if (!resp.ok) throw new Error(data.error || 'Error en la búsqueda');
+    if (!resp.ok) throw new Error(data.error || "Error en la búsqueda");
 
     if (!data.resultados || data.resultados.length === 0) {
-      resDiv.innerHTML = '<div class="resultado"><strong>No se encontraron coincidencias</strong></div>';
-      return;
+      resDiv.innerHTML = "<p><strong>No se encontraron coincidencias.</strong></p>";
+    } else {
+      const html = data.resultados
+        .map(
+          r => `
+        <div class="resultado">
+          <strong>Clave:</strong> ${r.clave} <br>
+          <strong>Agencia:</strong> ${r.agencia} ; 
+          <strong>Modelo:</strong> ${r.nombre} ; 
+          <strong>Cambios:</strong> ${r.cambios} ; 
+          <strong>Años:</strong> ${r.años_min}-${r.años_max} ; 
+          <strong>Cilindros:</strong> ${r.cilindros} ; 
+          <strong>Motor:</strong> ${r.motor}
+          <br>
+          <button class="btn-feedback" data-clave="${r.clave}">Dar feedback</button>
+        </div>`
+        )
+        .join("");
+
+      resDiv.innerHTML = html;
+      document.querySelectorAll(".btn-feedback").forEach(btn =>
+        btn.addEventListener("click", e => mostrarFeedback(e.target.dataset.clave))
+      );
     }
-
-    // Mostrar resultados
-    const rows = data.resultados.map(r =>
-      `<div class="resultado">
-        <strong>Clave:</strong> ${r.clave} <br>
-        <strong>Agencia:</strong> ${r.agencia} ; 
-        <strong>Modelo:</strong> ${r.nombre} ; 
-        <strong>Cambios:</strong> ${r.cambios} ; 
-        <strong>Años:</strong> ${r.años_min}-${r.años_max} ; 
-        <strong>Cilindros:</strong> ${r.cilindros} ; 
-        <strong>Motor:</strong> ${r.motor}
-      </div>`
-    ).join('');
-    resDiv.innerHTML = rows;
-
-    // Generar botones de feedback
-    feedbackDiv.innerHTML = '<p>¿Se vendió alguna de estas transmisiones?</p>';
-    const btns = [
-      'Sí, se vendió',
-      'No, no se vendió',
-      'No había lo que buscaban',
-      'No había existencias'
-    ];
-    btns.forEach(txt => {
-      const btn = document.createElement('button');
-      btn.textContent = txt;
-      btn.addEventListener('click', async () => {
-        const feedback = {
-          claves: data.resultados.map(r => r.clave),
-          tipo: txt
-        };
-        try {
-          await fetch('/feedback', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(feedback)
-          });
-          alert('Feedback enviado');
-        } catch (err) {
-          console.error('Error enviando feedback:', err);
-        }
-      });
-      feedbackDiv.appendChild(btn);
-    });
-
   } catch (err) {
-    resDiv.innerHTML = '<div class="resultado"><strong>Error de conexión con el servidor</strong></div>';
-    console.error('Error de búsqueda:', err);
+    resDiv.innerHTML = "<p><strong>Error al conectar con el servidor.</strong></p>";
+    console.error("Error de red:", err);
   }
 });
+
+// ======================================================
+// 🔹 FEEDBACK
+// ======================================================
+function mostrarFeedback(clave) {
+  const resDiv = document.getElementById("resultados");
+
+  const feedbackHTML = `
+    <div class="feedback" data-clave="${clave}">
+      <p>¿Se vendió algo de la transmisión con clave <strong>${clave}</strong>?</p>
+      <button onclick="enviarFeedback('${clave}', 'si_vendido')">Sí, se vendió</button>
+      <button onclick="enviarFeedback('${clave}', 'no_vendido')">No, no se vendió</button>
+      <button onclick="enviarFeedback('${clave}', 'no_existencia')">No había existencias</button>
+    </div>
+  `;
+
+  resDiv.insertAdjacentHTML("beforeend", feedbackHTML);
+}
+
+async function enviarFeedback(clave, respuesta) {
+  try {
+    const resp = await fetch("/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clave, respuesta }),
+    });
+
+    const data = await resp.json();
+
+    if (resp.ok) {
+      alert("Feedback registrado correctamente.");
+
+      //Elimina los botones de feedback de esa transmisión
+      const feedbackDiv = document.querySelector(`.feedback[data-clave='${clave}']`);
+      if (feedbackDiv) {
+        feedbackDiv.innerHTML = `<p>Feedback registrado para <strong>${clave}</strong>.</p>`;
+      }
+
+    } else {
+      console.error("Error en feedback:", data);
+      alert("Error al enviar feedback.");
+    }
+  } catch (err) {
+    console.error("Error al enviar feedback:", err);
+  }
+}
+

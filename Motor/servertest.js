@@ -2,7 +2,7 @@ const sql = require('mssql');
 
 const config = {
   server: 'localhost\\SQLEXPRESS',
-  database: 'c',
+  database: 'MOTORDB',
   options: {
     encrypt: false,
     trustServerCertificate: true,
